@@ -34,14 +34,3 @@ Ideal para otimizar logos, ícones, assets de jogos, interfaces e gráficos web 
 > ✅ Funciona sem internet! Perfeito para uso local e privado.
 
 ---
-
-## 🛠️ Tecnologias
-
-- [`pngquant-wasm`](https://github.com/pornel/pngquant-wasm) – Compressão PNG via WebAssembly
-- [`JSZip`](https://stuk.github.io/jszip/) – Criação de arquivos ZIP no cliente
-- `HTML5`, `CSS3`, `JavaScript` puro (sem frameworks)
-- Canvas API – para detectar transparência em PNGs
-
----
-
-## 📂 Estrutura do Projeto
