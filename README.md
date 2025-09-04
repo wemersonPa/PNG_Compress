@@ -6,6 +6,8 @@
 
 Ideal para otimizar logos, ícones, assets de jogos, interfaces e gráficos web sem comprometer a qualidade visual.
 
+https://ai.studio/apps/drive/1ceDrv0r0sgR3r0pVS-qOFWQT6-NRpsGh
+
 ---
 
 ## ✨ Recursos
