@@ -1,0 +1,5 @@
+{
+  "name": "PNG_Compress",
+  "description": "A simple and intuitive client-side tool to compress PNG images, including those with transparency. Adjust the compression level and see a live preview of the results.",
+  "requestFramePermissions": []
+}
