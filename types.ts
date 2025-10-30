@@ -1,4 +1,4 @@
-export type OutputFormat = 'png';
+export type OutputFormat = 'webp';
 
 export interface Settings {
   targetSize: number; // in KB
@@ -16,6 +16,7 @@ export enum ProcessStatus {
   COMPRESSING = 'Compressing...',
   SUCCESS = 'OK',
   ERROR = 'Error',
+  OVER_TARGET = 'Over Target',
 }
 
 export interface ProcessedImage {

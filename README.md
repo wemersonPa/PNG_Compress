@@ -1,38 +1,20 @@
-# 🔽 PNG_Compress
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-> **Comprima imagens PNG com transparência mantendo o fundo transparente — sem envio de dados, sem perda desnecessária.**
+# Run and deploy your AI Studio app
 
-**PNG_Compress** é uma ferramenta web leve e privada que permite comprimir múltiplas imagens PNG **com canal alpha (transparência)** para um tamanho máximo definido (ex: 200 KB), tudo diretamente no seu navegador. Nada é enviado para servidores — 100% offline e seguro.
+This contains everything you need to run your app locally.
 
-Ideal para otimizar logos, ícones, assets de jogos, interfaces e gráficos web sem comprometer a qualidade visual.
+View your app in AI Studio: https://ai.studio/apps/drive/1ceDrv0r0sgR3r0pVS-qOFWQT6-NRpsGh
 
-https://ai.studio/apps/drive/1ceDrv0r0sgR3r0pVS-qOFWQT6-NRpsGh
+## Run Locally
 
----
+**Prerequisites:**  Node.js
 
-## ✨ Recursos
 
-- 🖼️ Suporte a **várias imagens** (arraste e solte múltiplos PNGs)
-- ✨ Mantém **transparência (canal alpha)** em todas as saídas
-- 📏 Define **tamanho máximo em KB** (ex: 100 KB, 200 KB, 500 KB)
-- ⚙️ Compressão automática com ajuste inteligente de qualidade
-- 🔍 Visualização **antes/depois com slider comparativo**
-- 🛡️ Validação: aceita apenas arquivos PNG com transparência
-- 💾 **Download em lote** como `.zip` (todas as imagens comprimidas)
-- 🔐 Totalmente offline — **nenhum dado sai do seu navegador**
-- 📱 Interface responsiva (funciona em celular e desktop)
-
----
-
-## 🚀 Como Usar
-
-1. Clone ou baixe este repositório
-2. Abra o arquivo `index.html` no navegador (Chrome, Firefox, Edge)
-3. Arraste e solte suas imagens PNG
-4. Defina o limite de tamanho (em KB)
-5. Aguarde a compressão automática
-6. Clique em **"Baixar Todas como ZIP"**
-
-> ✅ Funciona sem internet! Perfeito para uso local e privado.
-
----
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

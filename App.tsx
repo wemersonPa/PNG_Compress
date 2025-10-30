@@ -8,8 +8,7 @@ import { Settings, ProcessedImage, ProcessStatus, ImageInfo } from './types';
 import Button from './components/Button';
 import { DownloadIcon } from './components/icons/DownloadIcon';
 
-// Declare UPNG.js and JSZip globals for TypeScript
-declare const UPNG: any;
+// Declare JSZip global for TypeScript
 declare const JSZip: any;
 
 const App: React.FC = () => {
@@ -79,12 +78,6 @@ const App: React.FC = () => {
     setImages(prev => [...prev, ...newImages]);
   };
   
-  /**
-   * This is the core iterative compression logic.
-   * It attempts to compress an image to meet the target size.
-   * It starts with the highest quality (lossless) and progressively
-   * reduces the number of colors (quantization) if the file is too large.
-   */
   const compressImage = useCallback(async (image: ProcessedImage, options: Settings) => {
     updateImageState(image.id, { status: ProcessStatus.COMPRESSING });
     
@@ -92,7 +85,7 @@ const App: React.FC = () => {
     const img = new Image();
     img.src = image.originalImage.url;
 
-    img.onload = () => {
+    img.onload = async () => {
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
@@ -102,29 +95,50 @@ const App: React.FC = () => {
           return;
         }
         ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         
-        // Quality loop: 100 is lossless, then step down from 95 to 30.
-        // This corresponds to a decreasing number of colors for quantization.
-        for (let quality = 100; quality >= 30; quality -= 5) {
-            const minColors = 32;
-            const maxColors = 256;
-            // cnum = 0 means lossless. Otherwise, map quality to color count.
-            const cnum = quality === 100 ? 0 : minColors + Math.round(((maxColors - minColors) * (quality - 30)) / (95 - 30));
+        let smallestResultBlob: Blob | null = null;
 
-            const pngBuffer = UPNG.encode([imageData.data.buffer], canvas.width, canvas.height, cnum);
+        const getWebpBlob = (quality: number): Promise<Blob | null> => {
+            return new Promise(resolve => {
+                canvas.toBlob(blob => resolve(blob), 'image/webp', quality);
+            });
+        };
+
+        // Iterate from high quality to low to find the best result under the target size
+        for (let quality = 0.95; quality >= 0; quality -= 0.05) {
+            const currentQuality = Math.max(0, quality); // Ensure quality is not negative
+            const blob = await getWebpBlob(currentQuality);
             
-            if (pngBuffer && (pngBuffer.byteLength <= targetBytes || quality === 30)) {
-                const blob = new Blob([pngBuffer], { type: 'image/png' });
-                const url = URL.createObjectURL(blob);
-                const compressedImageInfo: ImageInfo = { url, size: blob.size, name: image.file.name, blob };
-                
-                updateImageState(image.id, { status: ProcessStatus.SUCCESS, compressedImage: compressedImageInfo });
-                return; // Exit loop on success
+            if (blob) {
+              if (!smallestResultBlob || blob.size < smallestResultBlob.size) {
+                  smallestResultBlob = blob;
+              }
+
+              if (blob.size <= targetBytes) {
+                  const url = URL.createObjectURL(blob);
+                  const newName = image.file.name.replace(/\.png$/i, '.webp');
+                  const compressedImageInfo: ImageInfo = { url, size: blob.size, name: newName, blob };
+                  
+                  updateImageState(image.id, { status: ProcessStatus.SUCCESS, compressedImage: compressedImageInfo });
+                  return; // Exit on first success
+              }
             }
         }
-        // If loop finishes without meeting target size (even at lowest quality)
-        updateImageState(image.id, { status: ProcessStatus.ERROR, error: 'Could not meet target size.' });
+        
+        // If loop finishes without meeting target, use the smallest result we found
+        if (smallestResultBlob && smallestResultBlob.size < image.originalImage.size) {
+            const url = URL.createObjectURL(smallestResultBlob);
+            const newName = image.file.name.replace(/\.png$/i, '.webp');
+            const compressedImageInfo: ImageInfo = { url, size: smallestResultBlob.size, name: newName, blob: smallestResultBlob };
+            updateImageState(image.id, { 
+                status: ProcessStatus.OVER_TARGET, 
+                compressedImage: compressedImageInfo, 
+                error: `Smallest is ${Math.round(smallestResultBlob.size / 1024)}KB` 
+            });
+        } else {
+            // If we couldn't make it smaller or compression failed
+            updateImageState(image.id, { status: ProcessStatus.ERROR, error: 'Could not reduce size.' });
+        }
     };
     img.onerror = () => {
         updateImageState(image.id, { status: ProcessStatus.ERROR, error: 'Could not load image file.' });
@@ -140,18 +154,20 @@ const App: React.FC = () => {
 
   const handleDownloadZip = async () => {
     const zip = new JSZip();
-    const successfulImages = images.filter(img => img.status === ProcessStatus.SUCCESS && img.compressedImage);
+    const imagesToDownload = images.filter(img => 
+        (img.status === ProcessStatus.SUCCESS || img.status === ProcessStatus.OVER_TARGET) && img.compressedImage
+    );
     
-    if(successfulImages.length === 0) return;
+    if(imagesToDownload.length === 0) return;
 
-    successfulImages.forEach(img => {
-        zip.file(img.file.name, img.compressedImage!.blob);
+    imagesToDownload.forEach(img => {
+        zip.file(img.compressedImage!.name, img.compressedImage!.blob);
     });
 
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(zipBlob);
-    link.download = 'pngslim-compressed.zip';
+    link.download = 'webp-compressed.zip';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -166,7 +182,9 @@ const App: React.FC = () => {
     setError(null);
   };
 
-  const successfulCount = images.filter(img => img.status === ProcessStatus.SUCCESS).length;
+  const downloadableCount = images.filter(img => 
+    img.status === ProcessStatus.SUCCESS || img.status === ProcessStatus.OVER_TARGET
+  ).length;
 
   return (
     <div className="min-h-screen flex flex-col font-sans">
@@ -180,10 +198,10 @@ const App: React.FC = () => {
                         variant="primary" 
                         className="w-full" 
                         onClick={handleDownloadZip}
-                        disabled={successfulCount === 0}
+                        disabled={downloadableCount === 0}
                     >
                         <DownloadIcon />
-                        Download All ({successfulCount}) as ZIP
+                        Download All ({downloadableCount}) as ZIP
                     </Button>
                     <Button variant="secondary" onClick={resetState} className="w-full">
                         Clear All
@@ -200,7 +218,7 @@ const App: React.FC = () => {
         </div>
       </main>
       <footer className="text-center p-4 text-medium-text">
-        <p>&copy; {new Date().getFullYear()} PNGSlim. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} WebPSlim. All rights reserved.</p>
         <p>Your images are processed locally in your browser and are never uploaded.</p>
       </footer>
       {selectedImage && (

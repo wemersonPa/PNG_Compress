@@ -1,5 +1,5 @@
 {
-  "name": "PNG_Compress",
-  "description": "A simple and intuitive client-side tool to compress PNG images, including those with transparency. Adjust the compression level and see a live preview of the results.",
+  "name": "WebP Converter",
+  "description": "Convert PNG images to the modern, efficient WebP format. This tool processes images locally in your browser, ensuring privacy. It's optimized for PNGs with transparency, aiming to significantly reduce file size while maintaining quality.",
   "requestFramePermissions": []
 }

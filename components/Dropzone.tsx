@@ -49,7 +49,7 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFileSelect, error }) => {
   return (
     <div className="p-8 bg-dark-card rounded-xl shadow-lg text-center">
       <h2 className="text-xl font-semibold mb-4 text-light-text">Upload Your PNGs</h2>
-      <p className="text-medium-text mb-6">Drop multiple PNG files with transparency to begin.</p>
+      <p className="text-medium-text mb-6">Drop PNG files (with transparency) to convert them to WebP.</p>
       <div
         onDragEnter={handleDragIn}
         onDragLeave={handleDragOut}

@@ -32,14 +32,18 @@ const ImageListItem: React.FC<ImageListItemProps> = ({ image, onClick }) => {
                     </div>
                 );
             case ProcessStatus.SUCCESS:
-                const savings = ((originalImage.size - compressedImage!.size) / originalImage.size) * 100;
+            case ProcessStatus.OVER_TARGET:
+                if (!compressedImage) return null;
+                const savings = ((originalImage.size - compressedImage.size) / originalImage.size) * 100;
+                const isSuccess = status === ProcessStatus.SUCCESS;
                 return (
                     <div 
-                        className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                        className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer p-2"
                         onClick={() => onClick(image)}
                     >
-                        <p className="text-lg font-bold text-green-400">{savings.toFixed(1)}%</p>
+                        <p className={`text-lg font-bold ${isSuccess ? 'text-green-400' : 'text-yellow-400'}`}>{savings.toFixed(1)}%</p>
                         <p className="text-xs text-medium-text">Saved</p>
+                        {!isSuccess && <p className="mt-1 text-xs text-yellow-400 font-semibold">{image.error}</p>}
                         <p className="mt-2 text-xs font-semibold">Click to compare</p>
                     </div>
                 );
@@ -64,10 +68,12 @@ const ImageListItem: React.FC<ImageListItemProps> = ({ image, onClick }) => {
         <p className="font-bold text-light-text truncate" title={originalImage.name}>{originalImage.name}</p>
         <div className="flex justify-between items-center text-medium-text mt-1">
             <span>{formatBytes(originalImage.size)}</span>
-            {status === ProcessStatus.SUCCESS && compressedImage && (
+            {(status === ProcessStatus.SUCCESS || status === ProcessStatus.OVER_TARGET) && compressedImage && (
                 <>
                 <span className="font-mono text-light-text">→</span>
-                <span className="font-bold text-green-400">{formatBytes(compressedImage.size)}</span>
+                <span className={`font-bold ${status === ProcessStatus.SUCCESS ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {formatBytes(compressedImage.size)}
+                </span>
                 </>
             )}
             {status === ProcessStatus.ERROR && <span className="font-bold text-red-400">Failed</span>}
